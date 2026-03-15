@@ -4,419 +4,501 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>NUE Flight Map — Nuremberg Airport Destinations</title>
-  <meta name="description" content="Interactive map of all direct flights from Nuremberg Airport (NUE)" />
+  <title>NUE Flight Map</title>
   <meta name="theme-color" content="#0a0f1e" />
-  <!-- PWA / iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NUE Map" />
-
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body, #root { height: 100%; width: 100%; overflow: hidden; background: #0a0f1e; }
-  </style>
-
-</head>
-<body>
-  <div id="root"></div>
-
-  <script type="text/babel">
-    const { useState } = React;
-
-    const NUE = { lat: 49.4987, lng: 11.0669 };
-
-    const DESTINATIONS = [
-      { iata:"FRA", city:"Frankfurt", country:"Germany", lat:50.0379, lng:8.5622, airline:"Lufthansa", flag:"🇩🇪", region:"Germany", freq:"Up to 5x daily", times:["06:20","08:45","12:10","15:30","18:55"] },
-      { iata:"HAM", city:"Hamburg", country:"Germany", lat:53.6304, lng:9.9882, airline:"Eurowings", flag:"🇩🇪", region:"Germany", freq:"Daily", times:["07:10","17:40"] },
-      { iata:"PMI", city:"Palma de Mallorca", country:"Spain", lat:39.5517, lng:2.7388, airline:"Ryanair / Eurowings", flag:"🇪🇸", region:"Spain", freq:"Up to 5x weekly", times:["06:00","13:20"] },
-      { iata:"BCN", city:"Barcelona", country:"Spain", lat:41.2971, lng:2.0785, airline:"Vueling / Ryanair", flag:"🇪🇸", region:"Spain", freq:"4x weekly", times:["07:30","19:50"] },
-      { iata:"AGP", city:"Málaga", country:"Spain", lat:36.6749, lng:-4.4991, airline:"Ryanair", flag:"🇪🇸", region:"Spain", freq:"2x weekly", times:["06:40","14:10"] },
-      { iata:"ALC", city:"Alicante", country:"Spain", lat:38.2822, lng:-0.5582, airline:"Ryanair", flag:"🇪🇸", region:"Spain", freq:"2x weekly", times:["06:15","13:00"] },
-      { iata:"IBZ", city:"Ibiza", country:"Spain", lat:38.8729, lng:1.3731, airline:"Marabu", flag:"🇪🇸", region:"Spain", freq:"Weekly", times:["07:05"] },
-      { iata:"TFS", city:"Tenerife South", country:"Spain (Canaries)", lat:28.0445, lng:-16.5725, airline:"Corendon / TUI", flag:"🇪🇸", region:"Spain", freq:"Weekly", times:["05:30"] },
-      { iata:"LPA", city:"Gran Canaria", country:"Spain (Canaries)", lat:27.9319, lng:-15.3866, airline:"Condor / Eurowings", flag:"🇪🇸", region:"Spain", freq:"Weekly", times:["06:00"] },
-      { iata:"FUE", city:"Fuerteventura", country:"Spain (Canaries)", lat:28.4527, lng:-13.8638, airline:"TUI / Corendon", flag:"🇪🇸", region:"Spain", freq:"Weekly", times:["06:10"] },
-      { iata:"AYT", city:"Antalya", country:"Turkey", lat:36.8987, lng:30.7992, airline:"SunExpress / Corendon", flag:"🇹🇷", region:"Turkey", freq:"Up to daily (summer)", times:["03:00","23:30"] },
-      { iata:"IST", city:"Istanbul", country:"Turkey", lat:41.2753, lng:28.7519, airline:"Turkish Airlines / Pegasus", flag:"🇹🇷", region:"Turkey", freq:"Daily", times:["07:00","13:45","20:30"] },
-      { iata:"BJV", city:"Bodrum", country:"Turkey", lat:37.2506, lng:27.6643, airline:"Corendon / SunExpress", flag:"🇹🇷", region:"Turkey", freq:"2x weekly", times:["02:30","23:10"] },
-      { iata:"ADB", city:"Izmir", country:"Turkey", lat:38.2924, lng:27.1570, airline:"Pegasus / SunExpress", flag:"🇹🇷", region:"Turkey", freq:"2x weekly", times:["07:20","20:00"] },
-      { iata:"ATH", city:"Athens", country:"Greece", lat:37.9364, lng:23.9445, airline:"Aegean / Ryanair", flag:"🇬🇷", region:"Greece", freq:"3x weekly", times:["07:30","18:00"] },
-      { iata:"HER", city:"Heraklion (Crete)", country:"Greece", lat:35.3397, lng:25.1803, airline:"Ryanair / TUI", flag:"🇬🇷", region:"Greece", freq:"2x weekly (summer)", times:["03:45","23:00"] },
-      { iata:"RHO", city:"Rhodes", country:"Greece", lat:36.4054, lng:28.0862, airline:"Eurowings / TUI", flag:"🇬🇷", region:"Greece", freq:"2x weekly (summer)", times:["04:00","23:20"] },
-      { iata:"CFU", city:"Corfu", country:"Greece", lat:39.6019, lng:19.9117, airline:"Ryanair", flag:"🇬🇷", region:"Greece", freq:"Weekly", times:["06:30"] },
-      { iata:"KVA", city:"Kavala", country:"Greece", lat:40.9133, lng:24.6192, airline:"Marabu", flag:"🇬🇷", region:"Greece", freq:"Seasonal", times:["08:00"] },
-      { iata:"AMS", city:"Amsterdam", country:"Netherlands", lat:52.3105, lng:4.7683, airline:"KLM", flag:"🇳🇱", region:"Western Europe", freq:"Daily", times:["06:50","13:20","19:45"] },
-      { iata:"CDG", city:"Paris CDG", country:"France", lat:49.0097, lng:2.5479, airline:"Air France", flag:"🇫🇷", region:"Western Europe", freq:"Daily", times:["07:30","19:55"] },
-      { iata:"NCE", city:"Nice", country:"France", lat:43.6584, lng:7.2159, airline:"Eurowings", flag:"🇫🇷", region:"Western Europe", freq:"3x weekly", times:["07:10"] },
-      { iata:"STN", city:"London Stansted", country:"UK", lat:51.8850, lng:0.2350, airline:"Ryanair", flag:"🇬🇧", region:"Western Europe", freq:"Daily", times:["06:35","21:00"] },
-      { iata:"FCO", city:"Rome Fiumicino", country:"Italy", lat:41.8003, lng:12.2389, airline:"Eurowings / Ryanair", flag:"🇮🇹", region:"Italy", freq:"Daily", times:["06:55","19:30"] },
-      { iata:"OLB", city:"Olbia (Sardinia)", country:"Italy", lat:40.8989, lng:9.5176, airline:"Marabu", flag:"🇮🇹", region:"Italy", freq:"Weekly", times:["07:15"] },
-      { iata:"FNC", city:"Funchal (Madeira)", country:"Portugal", lat:32.6979, lng:-16.7745, airline:"Marabu", flag:"🇵🇹", region:"Portugal", freq:"Weekly", times:["06:00"] },
-      { iata:"HRG", city:"Hurghada", country:"Egypt", lat:27.1783, lng:33.7994, airline:"Air Cairo / Corendon", flag:"🇪🇬", region:"Egypt & Middle East", freq:"2x weekly", times:["03:00","22:00"] },
-      { iata:"SSH", city:"Sharm el-Sheikh", country:"Egypt", lat:27.9773, lng:34.3950, airline:"Corendon / Sundair", flag:"🇪🇬", region:"Egypt & Middle East", freq:"Weekly", times:["02:30"] },
-      { iata:"LCA", city:"Larnaca", country:"Cyprus", lat:34.8751, lng:33.6249, airline:"Marabu / Ryanair", flag:"🇨🇾", region:"Mediterranean", freq:"2x weekly", times:["04:00","21:30"] },
-      { iata:"BEG", city:"Belgrade", country:"Serbia", lat:44.8184, lng:20.3091, airline:"Air Serbia", flag:"🇷🇸", region:"Balkans & E. Europe", freq:"3x weekly", times:["09:00","19:00"] },
-      { iata:"VAR", city:"Varna", country:"Bulgaria", lat:43.2321, lng:27.8251, airline:"Wizz Air", flag:"🇧🇬", region:"Balkans & E. Europe", freq:"3x weekly", times:["08:30","22:10"] },
-      { iata:"OTP", city:"Bucharest", country:"Romania", lat:44.5711, lng:26.0850, airline:"Ryanair", flag:"🇷🇴", region:"Balkans & E. Europe", freq:"3x weekly", times:["07:50","21:00"] },
-      { iata:"KIV", city:"Chișinău", country:"Moldova", lat:46.9277, lng:28.9306, airline:"Wizz Air", flag:"🇲🇩", region:"Balkans & E. Europe", freq:"2x weekly", times:["09:15","22:30"] },
-      { iata:"JED", city:"Jeddah", country:"Saudi Arabia", lat:21.6796, lng:39.1565, airline:"Corendon", flag:"🇸🇦", region:"Egypt & Middle East", freq:"Seasonal", times:["02:00"] },
-    ];
-
-    const REGION_COLORS = {
-      "Germany": "#60a5fa",
-      "Spain": "#f59e0b",
-      "Turkey": "#ef4444",
-      "Greece": "#06b6d4",
-      "Western Europe": "#a78bfa",
-      "Italy": "#34d399",
-      "Portugal": "#fb923c",
-      "Egypt & Middle East": "#fbbf24",
-      "Mediterranean": "#22d3ee",
-      "Balkans & E. Europe": "#f472b6",
-    };
-
-    const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-
-    function project(lat, lng, w, h) {
-      const x = ((lng + 180) / 360) * w;
-      const latRad = (lat * Math.PI) / 180;
-      const mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
-      const y = h / 2 - (w * mercN) / (2 * Math.PI);
-      return { x, y };
-    }
-
-    function getDays(dest) {
-      const seed = dest.iata.charCodeAt(0) + dest.iata.charCodeAt(1);
-      const count = dest.freq.toLowerCase().includes("daily") ? 7
-        : dest.freq.includes("5x") ? 5
-        : dest.freq.includes("4x") ? 4
-        : dest.freq.includes("3x") ? 3
-        : dest.freq.includes("2x") ? 2 : 1;
-      const days = [];
-      for (let i = 0; i < count; i++) days.push(DAYS[(seed + i * 2) % 7]);
-      return [...new Set(days)].sort((a, b) => DAYS.indexOf(a) - DAYS.indexOf(b));
-    }
-
-    function NUEMap() {
-      const [tab, setTab] = useState("map");
-      const [selected, setSelected] = useState(null);
-      const [activeRegion, setActiveRegion] = useState("All");
-      const [search, setSearch] = useState("");
-      const W = 900, H = 460;
-
-      const nuePos = project(NUE.lat, NUE.lng, W, H);
-      const dest = selected ? DESTINATIONS.find(d => d.iata === selected) : null;
-      const regions = ["All", ...Object.keys(REGION_COLORS)];
-
-      const filtered = DESTINATIONS.filter(d => {
-        const regionOk = activeRegion === "All" || d.region === activeRegion;
-        const searchOk = !search || d.city.toLowerCase().includes(search.toLowerCase()) || d.country.toLowerCase().includes(search.toLowerCase()) || d.iata.toLowerCase().includes(search.toLowerCase());
-        return regionOk && searchOk;
-      });
-
-      function selectDest(iata) {
-        setSelected(prev => prev === iata ? null : iata);
-      }
-
-      return (
-        <div style={{ height: "100dvh", background: "#0a0f1e", fontFamily: "'DM Sans','Segoe UI',sans-serif", color: "#e2e8f0", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap');
-
-            ::-webkit-scrollbar { width: 3px; height: 3px; }
-            ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-
-            .tab-btn {
-              background: none; border: none; color: #475569;
-              display: flex; flex-direction: column; align-items: center; gap: 3px;
-              padding: 8px 20px; cursor: pointer;
-              font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 600;
-              letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.15s;
-              flex: 1;
-            }
-            .tab-btn.active { color: #3b82f6; }
-
-            .chip {
-              padding: 6px 14px; border-radius: 20px; border: 1px solid #1e293b;
-              background: #0f172a; color: #64748b; font-size: 12px; font-weight: 500;
-              cursor: pointer; white-space: nowrap; transition: all 0.15s;
-              font-family: 'DM Sans', sans-serif;
-            }
-            .chip.active { background: #1d4ed8; border-color: #3b82f6; color: #fff; }
-
-            .dest-row {
-              display: flex; align-items: center; gap: 12px;
-              padding: 13px 16px; border-bottom: 1px solid #0f172a; cursor: pointer;
-            }
-            .dest-row.selected { background: #0f2040; border-left: 3px solid #3b82f6; }
-
-            .sheet-backdrop {
-              position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40;
-              animation: fadeIn 0.2s;
-            }
-            @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-
-            .sheet {
-              position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-              background: #0f172a; border-radius: 20px 20px 0 0;
-              border-top: 1px solid #1e293b;
-              max-height: 82vh; overflow-y: auto;
-              animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1);
-              padding-bottom: env(safe-area-inset-bottom, 16px);
-            }
-            @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
-
-            .pulse-ring { animation: pulseRing 2.2s ease-in-out infinite; }
-            @keyframes pulseRing { 0%,100% { opacity:0.2; } 50% { opacity:0.05; } }
-
-            .dot-tap { cursor: pointer; }
-          `}</style>
+    html, body { height: 100%; background: #0a0f1e; font-family: 'DM Sans', sans-serif; color: #e2e8f0; overflow: hidden; }
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
 
 ```
-      {/* Header */}
-      <div style={{ padding: "14px 16px 10px", paddingTop: "max(14px, env(safe-area-inset-top))", borderBottom: "1px solid #1e293b", display: "flex", alignItems: "center", gap: 12, flexShrink: 0, background: "#0a0f1e" }}>
-        <div style={{ width: 36, height: 36, borderRadius: 9, background: "linear-gradient(135deg,#3b82f6,#1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>✈️</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.2px" }}>
-            Nuremberg Airport <span style={{ color: "#3b82f6", fontSize: 14 }}>NUE</span>
-          </div>
-          <div style={{ fontSize: 11, color: "#475569", marginTop: 1 }}>{DESTINATIONS.length} direct destinations · 22+ airlines</div>
-        </div>
-      </div>
+#app { display: flex; flex-direction: column; height: 100dvh; height: 100vh; overflow: hidden; }
 
-      {/* Region chips */}
-      <div style={{ display: "flex", gap: 6, padding: "8px 12px", overflowX: "auto", flexShrink: 0, borderBottom: "1px solid #0f172a", background: "#0a0f1e" }}>
-        {regions.map(r => (
-          <button key={r} className={"chip" + (activeRegion === r ? " active" : "")} onClick={() => setActiveRegion(r)}>
-            {r}
-          </button>
-        ))}
-      </div>
+/* HEADER */
+#header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px 10px; flex-shrink: 0;
+  border-bottom: 1px solid #1e293b; background: #0a0f1e;
+}
+#header-icon {
+  width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+#header-title { font-size: 16px; font-weight: 700; }
+#header-title span { color: #3b82f6; font-size: 14px; }
+#header-sub { font-size: 11px; color: #475569; margin-top: 1px; }
 
-      {/* Content */}
-      <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
+/* CHIPS */
+#chips {
+  display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto;
+  flex-shrink: 0; border-bottom: 1px solid #0f172a; background: #0a0f1e;
+}
+#chips::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 6px 14px; border-radius: 20px; border: 1px solid #1e293b;
+  background: #0f172a; color: #64748b; font-size: 12px; font-weight: 500;
+  cursor: pointer; white-space: nowrap; font-family: inherit; flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.chip.active { background: #1d4ed8; border-color: #3b82f6; color: #fff; }
 
-        {/* MAP TAB */}
-        <div style={{ display: tab === "map" ? "block" : "none", height: "100%", position: "relative" }}>
-          <svg width="100%" height="100%" viewBox={"0 0 " + W + " " + H} preserveAspectRatio="xMidYMid meet" style={{ display: "block" }}>
-            <rect width={W} height={H} fill="#0d1526" />
-            {/* Continent blobs */}
-            <g opacity="0.15" fill="#334155">
-              <ellipse cx="490" cy="138" rx="55" ry="38" />
-              <ellipse cx="510" cy="125" rx="30" ry="20" />
-              <ellipse cx="450" cy="115" rx="12" ry="16" />
-              <ellipse cx="496" cy="90" rx="22" ry="28" />
-              <ellipse cx="476" cy="192" rx="70" ry="28" />
-              <ellipse cx="490" cy="268" rx="52" ry="70" />
-              <ellipse cx="570" cy="182" rx="38" ry="28" />
-              <ellipse cx="660" cy="138" rx="115" ry="55" />
-              <ellipse cx="630" cy="210" rx="30" ry="40" />
-              <ellipse cx="730" cy="225" rx="35" ry="30" />
-              <ellipse cx="190" cy="165" rx="65" ry="95" />
-              <ellipse cx="210" cy="285" rx="40" ry="60" />
-              <ellipse cx="758" cy="308" rx="48" ry="30" />
-            </g>
-            {/* Grid */}
-            {[-30,-15,0,15,30,45,60].map(lat => {
-              const p = project(lat, 0, W, H);
-              return <line key={lat} x1="0" y1={p.y} x2={W} y2={p.y} stroke="#1e293b" strokeWidth="0.4" />;
-            })}
-            {[-150,-120,-90,-60,-30,0,30,60,90,120,150].map(lng => {
-              const p = project(0, lng, W, H);
-              return <line key={lng} x1={p.x} y1="0" x2={p.x} y2={H} stroke="#1e293b" strokeWidth="0.4" />;
-            })}
-            {/* Arcs */}
-            {filtered.map(d => {
-              const dp = project(d.lat, d.lng, W, H);
-              const isSel = selected === d.iata;
-              const color = REGION_COLORS[d.region] || "#94a3b8";
-              const mx = (nuePos.x + dp.x) / 2;
-              const my = (nuePos.y + dp.y) / 2 - 38;
-              return (
-                <path key={d.iata + "-arc"}
-                  d={"M" + nuePos.x + " " + nuePos.y + " Q" + mx + " " + my + " " + dp.x + " " + dp.y}
-                  fill="none" stroke={color}
-                  strokeWidth={isSel ? 2 : 0.8}
-                  strokeOpacity={isSel ? 1 : 0.3}
-                  strokeDasharray={isSel ? "none" : "5 4"}
-                />
-              );
-            })}
-            {/* Dots */}
-            {filtered.map(d => {
-              const dp = project(d.lat, d.lng, W, H);
-              const isSel = selected === d.iata;
-              const color = REGION_COLORS[d.region] || "#94a3b8";
-              return (
-                <g key={d.iata} className="dot-tap" onClick={() => selectDest(d.iata)}>
-                  <circle cx={dp.x} cy={dp.y} r="16" fill="transparent" />
-                  {isSel && <circle cx={dp.x} cy={dp.y} r="12" fill={color} opacity="0.15" className="pulse-ring" />}
-                  <circle cx={dp.x} cy={dp.y} r={isSel ? 6 : 4} fill={color} opacity={isSel ? 1 : 0.85} />
-                  <circle cx={dp.x} cy={dp.y} r={isSel ? 6 : 4} fill="none" stroke={color} strokeWidth="1.5" opacity="0.5" />
-                  {isSel && (
-                    <text x={dp.x} y={dp.y - 11} textAnchor="middle" fill={color} fontSize="9" fontWeight="700" fontFamily="DM Sans, sans-serif">
-                      {d.city}
-                    </text>
-                  )}
-                </g>
-              );
-            })}
-            {/* NUE origin */}
-            <circle cx={nuePos.x} cy={nuePos.y} r="10" fill="#3b82f6" opacity="0.2" className="pulse-ring" />
-            <circle cx={nuePos.x} cy={nuePos.y} r="6" fill="#3b82f6" />
-            <circle cx={nuePos.x} cy={nuePos.y} r="6" fill="none" stroke="#93c5fd" strokeWidth="2" />
-            <text x={nuePos.x} y={nuePos.y - 11} textAnchor="middle" fill="#93c5fd" fontSize="9" fontWeight="700" fontFamily="DM Sans, sans-serif">NUE</text>
-          </svg>
-          {!selected && (
-            <div style={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", background: "rgba(10,15,30,0.9)", backdropFilter: "blur(8px)", border: "1px solid #1e293b", borderRadius: 20, padding: "7px 16px", fontSize: 12, color: "#64748b", whiteSpace: "nowrap", pointerEvents: "none" }}>
-              Tap a dot to see schedule
-            </div>
-          )}
-        </div>
+/* CONTENT */
+#content { flex: 1; overflow: hidden; position: relative; min-height: 0; }
 
-        {/* LIST TAB */}
-        <div style={{ display: tab === "list" ? "flex" : "none", flexDirection: "column", height: "100%", overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid #0f172a", flexShrink: 0 }}>
-            <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#475569" }}>🔍</span>
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search destinations…"
-                style={{ width: "100%", background: "#0f172a", border: "1px solid #1e293b", borderRadius: 10, padding: "10px 12px 10px 34px", color: "#e2e8f0", fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none" }}
-              />
-            </div>
-          </div>
-          <div style={{ flex: 1, overflowY: "auto" }}>
-            <div style={{ padding: "8px 16px 4px", fontSize: 11, color: "#334155", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              {filtered.length} destinations
-            </div>
-            {filtered.map(d => (
-              <div key={d.iata} className={"dest-row" + (selected === d.iata ? " selected" : "")} onClick={() => selectDest(d.iata)}>
-                <span style={{ fontSize: 22, flexShrink: 0 }}>{d.flag}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.city}</div>
-                  <div style={{ fontSize: 12, color: "#64748b", marginTop: 1 }}>{d.country} · {d.airline.split("/")[0].trim()}</div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", fontFamily: "DM Mono, monospace" }}>{d.iata}</div>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: REGION_COLORS[d.region] || "#94a3b8" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Nav */}
-      <div style={{ borderTop: "1px solid #1e293b", background: "#0a0f1e", display: "flex", paddingBottom: "env(safe-area-inset-bottom, 8px)", flexShrink: 0 }}>
-        <button className={"tab-btn" + (tab === "map" ? " active" : "")} onClick={() => setTab("map")}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
-            <line x1="9" y1="3" x2="9" y2="18"/>
-            <line x1="15" y1="6" x2="15" y2="21"/>
-          </svg>
-          Map
-        </button>
-        <button className={"tab-btn" + (tab === "list" ? " active" : "")} onClick={() => setTab("list")}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="8" y1="6" x2="21" y2="6"/>
-            <line x1="8" y1="12" x2="21" y2="12"/>
-            <line x1="8" y1="18" x2="21" y2="18"/>
-            <line x1="3" y1="6" x2="3.01" y2="6"/>
-            <line x1="3" y1="12" x2="3.01" y2="12"/>
-            <line x1="3" y1="18" x2="3.01" y2="18"/>
-          </svg>
-          Destinations
-        </button>
-      </div>
-
-      {/* Bottom Sheet */}
-      {dest && (
-        <div>
-          <div className="sheet-backdrop" onClick={() => setSelected(null)} />
-          <div className="sheet">
-            <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-              <div style={{ width: 36, height: 4, borderRadius: 2, background: "#334155" }} />
-            </div>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "6px 18px 12px" }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: 28 }}>{dest.flag}</span>
-                  <div>
-                    <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: "-0.3px" }}>{dest.city}</div>
-                    <div style={{ fontSize: 13, color: "#64748b" }}>{dest.country} · {dest.iata}</div>
-                  </div>
-                </div>
-                <div style={{ marginTop: 8 }}>
-                  <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: (REGION_COLORS[dest.region] || "#94a3b8") + "22", color: REGION_COLORS[dest.region] || "#94a3b8", border: "1px solid " + (REGION_COLORS[dest.region] || "#94a3b8") + "44" }}>
-                    {dest.region}
-                  </span>
-                </div>
-              </div>
-              <button onClick={() => setSelected(null)} style={{ background: "#1e293b", border: "none", borderRadius: 8, width: 32, height: 32, color: "#94a3b8", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</button>
-            </div>
-
-            <div style={{ padding: "0 14px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div style={{ background: "#0a0f1e", borderRadius: 12, padding: "12px 14px", border: "1px solid #1e293b" }}>
-                  <div style={{ fontSize: 10, color: "#475569", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 5 }}>Airline(s)</div>
-                  <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4 }}>{dest.airline}</div>
-                </div>
-                <div style={{ background: "#0a0f1e", borderRadius: 12, padding: "12px 14px", border: "1px solid #1e293b" }}>
-                  <div style={{ fontSize: 10, color: "#475569", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 5 }}>Frequency</div>
-                  <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4 }}>{dest.freq}</div>
-                </div>
-              </div>
-
-              <div style={{ background: "#0a0f1e", borderRadius: 12, padding: "12px 14px", border: "1px solid #1e293b" }}>
-                <div style={{ fontSize: 10, color: "#475569", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Operating Days</div>
-                <div style={{ display: "flex", gap: 6 }}>
-                  {DAYS.map(day => {
-                    const active = getDays(dest).includes(day);
-                    const color = REGION_COLORS[dest.region] || "#94a3b8";
-                    return (
-                      <div key={day} style={{ flex: 1, height: 36, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, background: active ? color + "22" : "#1e293b", color: active ? color : "#334155", border: "1px solid " + (active ? color + "55" : "transparent") }}>
-                        {day.slice(0,2)}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div style={{ background: "#0a0f1e", borderRadius: 12, padding: "12px 14px", border: "1px solid #1e293b" }}>
-                <div style={{ fontSize: 10, color: "#475569", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Typical Departures from NUE</div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {dest.times.map((t, i) => (
-                    <div key={i} style={{ background: (REGION_COLORS[dest.region] || "#94a3b8") + "18", border: "1px solid " + (REGION_COLORS[dest.region] || "#94a3b8") + "33", borderRadius: 10, padding: "8px 14px", textAlign: "center" }}>
-                      <div style={{ fontFamily: "DM Mono, monospace", fontSize: 18, fontWeight: 500, color: REGION_COLORS[dest.region] || "#94a3b8" }}>{t}</div>
-                      <div style={{ fontSize: 10, color: "#475569", marginTop: 2 }}>dep.</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ marginTop: 10, fontSize: 11, color: "#475569", fontStyle: "italic" }}>
-                  ⓘ Indicative times — check airline websites for live schedules.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+/* MAP */
+#map-tab { width: 100%; height: 100%; position: relative; }
+#map-svg { display: block; width: 100%; height: 100%; }
+.arc { transition: stroke-opacity 0.2s; }
+.dot-group { cursor: pointer; }
+#tap-hint {
+  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: rgba(10,15,30,0.9); border: 1px solid #1e293b; border-radius: 20px;
+  padding: 7px 16px; font-size: 12px; color: #64748b; white-space: nowrap;
+  pointer-events: none;
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<NUEMap />);
+/* LIST */
+#list-tab { display: flex; flex-direction: column; height: 100%; }
+#search-wrap { padding: 10px 14px; border-bottom: 1px solid #0f172a; flex-shrink: 0; position: relative; }
+#search-icon { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); font-size: 14px; color: #475569; pointer-events: none; }
+#search {
+  width: 100%; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px;
+  padding: 10px 12px 10px 34px; color: #e2e8f0; font-size: 15px;
+  font-family: inherit; outline: none;
+}
+#list-count { padding: 8px 16px 4px; font-size: 11px; color: #334155; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+#list-scroll { flex: 1; overflow-y: auto; }
+.dest-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; border-bottom: 1px solid #0f172a; cursor: pointer;
+}
+.dest-row.sel { background: #0f2040; border-left: 3px solid #3b82f6; }
+.dest-flag { font-size: 22px; flex-shrink: 0; }
+.dest-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dest-sub { font-size: 12px; color: #64748b; margin-top: 1px; }
+.dest-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.dest-iata { font-size: 11px; font-weight: 700; color: #475569; font-family: 'DM Mono', monospace; }
+.dest-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* BOTTOM NAV */
+#bottom-nav {
+  display: flex; border-top: 1px solid #1e293b; background: #0a0f1e; flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tab-btn {
+  flex: 1; background: none; border: none; color: #475569;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 8px 16px; cursor: pointer; font-family: inherit;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.tab-btn.active { color: #3b82f6; }
+.tab-btn svg { display: block; }
+
+/* SHEET */
+#backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 40;
+}
+#sheet {
+  display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: #0f172a; border-radius: 20px 20px 0 0; border-top: 1px solid #1e293b;
+  max-height: 82vh; overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+#backdrop.open, #sheet.open { display: block; animation: fadeIn 0.2s; }
+#sheet.open { animation: slideUp 0.28s cubic-bezier(0.32,0.72,0,1); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+#sheet-handle { display: flex; justify-content: center; padding: 12px 0 4px; }
+#sheet-handle-bar { width: 36px; height: 4px; border-radius: 2px; background: #334155; }
+#sheet-top { display: flex; align-items: flex-start; justify-content: space-between; padding: 6px 18px 12px; }
+#sheet-close {
+  background: #1e293b; border: none; border-radius: 8px; width: 32px; height: 32px;
+  color: #94a3b8; font-size: 16px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+#sheet-body { padding: 0 14px 20px; display: flex; flex-direction: column; gap: 10px; }
+.s-card { background: #0a0f1e; border-radius: 12px; padding: 12px 14px; border: 1px solid #1e293b; }
+.s-label { font-size: 10px; color: #475569; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 5px; }
+.s-value { font-size: 13px; font-weight: 500; line-height: 1.4; }
+.s-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.days-row { display: flex; gap: 6px; margin-top: 8px; }
+.day-pill { flex: 1; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+.times-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.time-card { border-radius: 10px; padding: 8px 14px; text-align: center; }
+.time-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; }
+.time-sub { font-size: 10px; color: #475569; margin-top: 2px; }
+.s-note { margin-top: 10px; font-size: 11px; color: #475569; font-style: italic; }
+
+@keyframes pulseO { 0%,100% { opacity: 0.2; } 50% { opacity: 0.06; } }
+.pulse { animation: pulseO 2.2s ease-in-out infinite; }
+
+.hidden { display: none !important; }
 ```
 
-  </script>
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div id="header-icon">&#9992;&#65039;</div>
+    <div>
+      <div id="header-title">Nuremberg Airport <span>NUE</span></div>
+      <div id="header-sub">34 direct destinations &middot; 22+ airlines</div>
+    </div>
+  </div>
+
+  <div id="chips"></div>
+
+  <div id="content">
+    <div id="map-tab">
+      <svg id="map-svg" viewBox="0 0 900 460" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="tap-hint">Tap a dot to see schedule</div>
+    </div>
+    <div id="list-tab" class="hidden">
+      <div id="search-wrap">
+        <span id="search-icon">&#128269;</span>
+        <input id="search" type="text" placeholder="Search destinations..." autocomplete="off" />
+      </div>
+      <div id="list-count"></div>
+      <div id="list-scroll"></div>
+    </div>
+  </div>
+
+  <div id="bottom-nav">
+    <button class="tab-btn active" id="btn-map" onclick="switchTab('map')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
+        <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
+      </svg>
+      Map
+    </button>
+    <button class="tab-btn" id="btn-list" onclick="switchTab('list')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+      </svg>
+      Destinations
+    </button>
+  </div>
+
+  <div id="backdrop" onclick="closeSheet()"></div>
+  <div id="sheet">
+    <div id="sheet-handle"><div id="sheet-handle-bar"></div></div>
+    <div id="sheet-top">
+      <div id="sheet-info"></div>
+      <button id="sheet-close" onclick="closeSheet()">&#10005;</button>
+    </div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<script>
+var DESTINATIONS = [
+  { iata:"FRA", city:"Frankfurt",         country:"Germany",           lat:50.0379, lng:8.5622,   airline:"Lufthansa",             flag:"&#127465;&#127466;", region:"Germany",             freq:"Up to 5x daily",       times:["06:20","08:45","12:10","15:30","18:55"] },
+  { iata:"HAM", city:"Hamburg",           country:"Germany",           lat:53.6304, lng:9.9882,   airline:"Eurowings",             flag:"&#127465;&#127466;", region:"Germany",             freq:"Daily",                times:["07:10","17:40"] },
+  { iata:"PMI", city:"Palma de Mallorca", country:"Spain",             lat:39.5517, lng:2.7388,   airline:"Ryanair / Eurowings",   flag:"&#127466;&#127480;", region:"Spain",               freq:"Up to 5x weekly",      times:["06:00","13:20"] },
+  { iata:"BCN", city:"Barcelona",         country:"Spain",             lat:41.2971, lng:2.0785,   airline:"Vueling / Ryanair",     flag:"&#127466;&#127480;", region:"Spain",               freq:"4x weekly",            times:["07:30","19:50"] },
+  { iata:"AGP", city:"Malaga",            country:"Spain",             lat:36.6749, lng:-4.4991,  airline:"Ryanair",               flag:"&#127466;&#127480;", region:"Spain",               freq:"2x weekly",            times:["06:40","14:10"] },
+  { iata:"ALC", city:"Alicante",          country:"Spain",             lat:38.2822, lng:-0.5582,  airline:"Ryanair",               flag:"&#127466;&#127480;", region:"Spain",               freq:"2x weekly",            times:["06:15","13:00"] },
+  { iata:"IBZ", city:"Ibiza",             country:"Spain",             lat:38.8729, lng:1.3731,   airline:"Marabu",                flag:"&#127466;&#127480;", region:"Spain",               freq:"Weekly",               times:["07:05"] },
+  { iata:"TFS", city:"Tenerife South",    country:"Spain (Canaries)",  lat:28.0445, lng:-16.5725, airline:"Corendon / TUI",        flag:"&#127466;&#127480;", region:"Spain",               freq:"Weekly",               times:["05:30"] },
+  { iata:"LPA", city:"Gran Canaria",      country:"Spain (Canaries)",  lat:27.9319, lng:-15.3866, airline:"Condor / Eurowings",    flag:"&#127466;&#127480;", region:"Spain",               freq:"Weekly",               times:["06:00"] },
+  { iata:"FUE", city:"Fuerteventura",     country:"Spain (Canaries)",  lat:28.4527, lng:-13.8638, airline:"TUI / Corendon",        flag:"&#127466;&#127480;", region:"Spain",               freq:"Weekly",               times:["06:10"] },
+  { iata:"AYT", city:"Antalya",           country:"Turkey",            lat:36.8987, lng:30.7992,  airline:"SunExpress / Corendon", flag:"&#127481;&#127479;", region:"Turkey",              freq:"Up to daily (summer)", times:["03:00","23:30"] },
+  { iata:"IST", city:"Istanbul",          country:"Turkey",            lat:41.2753, lng:28.7519,  airline:"Turkish Airlines",      flag:"&#127481;&#127479;", region:"Turkey",              freq:"Daily",                times:["07:00","13:45","20:30"] },
+  { iata:"BJV", city:"Bodrum",            country:"Turkey",            lat:37.2506, lng:27.6643,  airline:"Corendon / SunExpress", flag:"&#127481;&#127479;", region:"Turkey",              freq:"2x weekly",            times:["02:30","23:10"] },
+  { iata:"ADB", city:"Izmir",             country:"Turkey",            lat:38.2924, lng:27.1570,  airline:"Pegasus / SunExpress",  flag:"&#127481;&#127479;", region:"Turkey",              freq:"2x weekly",            times:["07:20","20:00"] },
+  { iata:"ATH", city:"Athens",            country:"Greece",            lat:37.9364, lng:23.9445,  airline:"Aegean / Ryanair",      flag:"&#127468;&#127479;", region:"Greece",              freq:"3x weekly",            times:["07:30","18:00"] },
+  { iata:"HER", city:"Heraklion (Crete)", country:"Greece",            lat:35.3397, lng:25.1803,  airline:"Ryanair / TUI",         flag:"&#127468;&#127479;", region:"Greece",              freq:"2x weekly (summer)",   times:["03:45","23:00"] },
+  { iata:"RHO", city:"Rhodes",            country:"Greece",            lat:36.4054, lng:28.0862,  airline:"Eurowings / TUI",       flag:"&#127468;&#127479;", region:"Greece",              freq:"2x weekly (summer)",   times:["04:00","23:20"] },
+  { iata:"CFU", city:"Corfu",             country:"Greece",            lat:39.6019, lng:19.9117,  airline:"Ryanair",               flag:"&#127468;&#127479;", region:"Greece",              freq:"Weekly",               times:["06:30"] },
+  { iata:"KVA", city:"Kavala",            country:"Greece",            lat:40.9133, lng:24.6192,  airline:"Marabu",                flag:"&#127468;&#127479;", region:"Greece",              freq:"Seasonal",             times:["08:00"] },
+  { iata:"AMS", city:"Amsterdam",         country:"Netherlands",       lat:52.3105, lng:4.7683,   airline:"KLM",                   flag:"&#127475;&#127473;", region:"Western Europe",      freq:"Daily",                times:["06:50","13:20","19:45"] },
+  { iata:"CDG", city:"Paris CDG",         country:"France",            lat:49.0097, lng:2.5479,   airline:"Air France",            flag:"&#127467;&#127479;", region:"Western Europe",      freq:"Daily",                times:["07:30","19:55"] },
+  { iata:"NCE", city:"Nice",              country:"France",            lat:43.6584, lng:7.2159,   airline:"Eurowings",             flag:"&#127467;&#127479;", region:"Western Europe",      freq:"3x weekly",            times:["07:10"] },
+  { iata:"STN", city:"London Stansted",   country:"UK",                lat:51.8850, lng:0.2350,   airline:"Ryanair",               flag:"&#127468;&#127463;", region:"Western Europe",      freq:"Daily",                times:["06:35","21:00"] },
+  { iata:"FCO", city:"Rome Fiumicino",    country:"Italy",             lat:41.8003, lng:12.2389,  airline:"Eurowings / Ryanair",   flag:"&#127470;&#127481;", region:"Italy",               freq:"Daily",                times:["06:55","19:30"] },
+  { iata:"OLB", city:"Olbia (Sardinia)",  country:"Italy",             lat:40.8989, lng:9.5176,   airline:"Marabu",                flag:"&#127470;&#127481;", region:"Italy",               freq:"Weekly",               times:["07:15"] },
+  { iata:"FNC", city:"Funchal (Madeira)", country:"Portugal",          lat:32.6979, lng:-16.7745, airline:"Marabu",                flag:"&#127477;&#127481;", region:"Portugal",            freq:"Weekly",               times:["06:00"] },
+  { iata:"HRG", city:"Hurghada",          country:"Egypt",             lat:27.1783, lng:33.7994,  airline:"Air Cairo / Corendon",  flag:"&#127466;&#127468;", region:"Egypt & Middle East", freq:"2x weekly",            times:["03:00","22:00"] },
+  { iata:"SSH", city:"Sharm el-Sheikh",   country:"Egypt",             lat:27.9773, lng:34.3950,  airline:"Corendon / Sundair",    flag:"&#127466;&#127468;", region:"Egypt & Middle East", freq:"Weekly",               times:["02:30"] },
+  { iata:"LCA", city:"Larnaca",           country:"Cyprus",            lat:34.8751, lng:33.6249,  airline:"Marabu / Ryanair",      flag:"&#127464;&#127486;", region:"Mediterranean",       freq:"2x weekly",            times:["04:00","21:30"] },
+  { iata:"BEG", city:"Belgrade",          country:"Serbia",            lat:44.8184, lng:20.3091,  airline:"Air Serbia",            flag:"&#127479;&#127480;", region:"Balkans & E. Europe", freq:"3x weekly",            times:["09:00","19:00"] },
+  { iata:"VAR", city:"Varna",             country:"Bulgaria",          lat:43.2321, lng:27.8251,  airline:"Wizz Air",              flag:"&#127463;&#127468;", region:"Balkans & E. Europe", freq:"3x weekly",            times:["08:30","22:10"] },
+  { iata:"OTP", city:"Bucharest",         country:"Romania",           lat:44.5711, lng:26.0850,  airline:"Ryanair",               flag:"&#127479;&#127476;", region:"Balkans & E. Europe", freq:"3x weekly",            times:["07:50","21:00"] },
+  { iata:"KIV", city:"Chisinau",          country:"Moldova",           lat:46.9277, lng:28.9306,  airline:"Wizz Air",              flag:"&#127474;&#127465;", region:"Balkans & E. Europe", freq:"2x weekly",            times:["09:15","22:30"] },
+  { iata:"JED", city:"Jeddah",            country:"Saudi Arabia",      lat:21.6796, lng:39.1565,  airline:"Corendon",              flag:"&#127480;&#127462;", region:"Egypt & Middle East", freq:"Seasonal",             times:["02:00"] }
+];
+
+var REGION_COLORS = {
+  "Germany":             "#60a5fa",
+  "Spain":               "#f59e0b",
+  "Turkey":              "#ef4444",
+  "Greece":              "#06b6d4",
+  "Western Europe":      "#a78bfa",
+  "Italy":               "#34d399",
+  "Portugal":            "#fb923c",
+  "Egypt & Middle East": "#fbbf24",
+  "Mediterranean":       "#22d3ee",
+  "Balkans & E. Europe": "#f472b6"
+};
+
+var DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+var W = 900, H = 460;
+var NUE_LAT = 49.4987, NUE_LNG = 11.0669;
+var currentTab = "map";
+var activeRegion = "All";
+var selectedIata = null;
+
+function project(lat, lng) {
+  var x = ((lng + 180) / 360) * W;
+  var latRad = lat * Math.PI / 180;
+  var mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
+  var y = H / 2 - (W * mercN) / (2 * Math.PI);
+  return { x: x, y: y };
+}
+
+function getActiveDays(dest) {
+  var seed = dest.iata.charCodeAt(0) + dest.iata.charCodeAt(1);
+  var f = dest.freq.toLowerCase();
+  var count = f.indexOf("daily") >= 0 ? 7 : f.indexOf("5x") >= 0 ? 5 : f.indexOf("4x") >= 0 ? 4 : f.indexOf("3x") >= 0 ? 3 : f.indexOf("2x") >= 0 ? 2 : 1;
+  var seen = {}, days = [];
+  for (var i = 0; i < count; i++) {
+    var d = DAYS[(seed + i * 2) % 7];
+    if (!seen[d]) { seen[d] = true; days.push(d); }
+  }
+  return days.sort(function(a, b) { return DAYS.indexOf(a) - DAYS.indexOf(b); });
+}
+
+function svgEl(tag, attrs) {
+  var el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (var k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function el(tag, attrs, html) {
+  var e = document.createElement(tag);
+  if (attrs) { for (var k in attrs) { if (k === "class") e.className = attrs[k]; else e[k] = attrs[k]; } }
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+// BUILD CHIPS
+function buildChips() {
+  var bar = document.getElementById("chips");
+  bar.innerHTML = "";
+  var regions = ["All"].concat(Object.keys(REGION_COLORS));
+  regions.forEach(function(r) {
+    var btn = el("button", { class: "chip" + (r === activeRegion ? " active" : "") }, r);
+    btn.onclick = function() { activeRegion = r; buildChips(); buildMap(); buildList(); };
+    bar.appendChild(btn);
+  });
+}
+
+// BUILD MAP
+function buildMap() {
+  var svg = document.getElementById("map-svg");
+  svg.innerHTML = "";
+  var nue = project(NUE_LAT, NUE_LNG);
+
+  // Background
+  svg.appendChild(svgEl("rect", { width: W, height: H, fill: "#0d1526" }));
+
+  // Continent blobs
+  var blobs = [
+    [490,138,55,38],[510,125,30,20],[450,115,12,16],[496,90,22,28],
+    [476,192,70,28],[490,268,52,70],[570,182,38,28],[660,138,115,55],
+    [630,210,30,40],[730,225,35,30],[190,165,65,95],[210,285,40,60],[758,308,48,30]
+  ];
+  var g = svgEl("g", { opacity: "0.15", fill: "#334155" });
+  blobs.forEach(function(b) {
+    g.appendChild(svgEl("ellipse", { cx: b[0], cy: b[1], rx: b[2], ry: b[3] }));
+  });
+  svg.appendChild(g);
+
+  // Grid
+  [-30,-15,0,15,30,45,60].forEach(function(lat) {
+    var p = project(lat, 0);
+    svg.appendChild(svgEl("line", { x1:0, y1:p.y, x2:W, y2:p.y, stroke:"#1e293b", "stroke-width":"0.4" }));
+  });
+  [-150,-120,-90,-60,-30,0,30,60,90,120,150].forEach(function(lng) {
+    var p = project(0, lng);
+    svg.appendChild(svgEl("line", { x1:p.x, y1:0, x2:p.x, y2:H, stroke:"#1e293b", "stroke-width":"0.4" }));
+  });
+
+  var filtered = getFiltered();
+
+  // Arcs
+  filtered.forEach(function(d) {
+    var dp = project(d.lat, d.lng);
+    var isSel = selectedIata === d.iata;
+    var color = REGION_COLORS[d.region] || "#94a3b8";
+    var mx = (nue.x + dp.x) / 2, my = (nue.y + dp.y) / 2 - 38;
+    var path = svgEl("path", {
+      d: "M" + nue.x + " " + nue.y + " Q" + mx + " " + my + " " + dp.x + " " + dp.y,
+      fill: "none", stroke: color,
+      "stroke-width": isSel ? "2" : "0.8",
+      "stroke-opacity": isSel ? "1" : "0.3",
+      "stroke-dasharray": isSel ? "none" : "5 4"
+    });
+    svg.appendChild(path);
+  });
+
+  // Dots
+  filtered.forEach(function(d) {
+    var dp = project(d.lat, d.lng);
+    var isSel = selectedIata === d.iata;
+    var color = REGION_COLORS[d.region] || "#94a3b8";
+
+    var g = svgEl("g", { cursor: "pointer" });
+
+    if (isSel) {
+      var glow = svgEl("circle", { cx: dp.x, cy: dp.y, r: "12", fill: color, opacity: "0.15" });
+      glow.style.animation = "pulseO 2.2s ease-in-out infinite";
+      g.appendChild(glow);
+    }
+
+    g.appendChild(svgEl("circle", { cx: dp.x, cy: dp.y, r: "16", fill: "transparent" })); // tap target
+    g.appendChild(svgEl("circle", { cx: dp.x, cy: dp.y, r: isSel ? "6" : "4", fill: color, opacity: isSel ? "1" : "0.85" }));
+    g.appendChild(svgEl("circle", { cx: dp.x, cy: dp.y, r: isSel ? "6" : "4", fill: "none", stroke: color, "stroke-width": "1.5", opacity: "0.5" }));
+
+    if (isSel) {
+      var lbl = svgEl("text", { x: dp.x, y: dp.y - 11, "text-anchor": "middle", fill: color, "font-size": "9", "font-weight": "700", "font-family": "DM Sans, sans-serif" });
+      lbl.textContent = d.city;
+      g.appendChild(lbl);
+    }
+
+    (function(iata) {
+      g.addEventListener("click", function() { selectDest(iata); });
+    })(d.iata);
+
+    svg.appendChild(g);
+  });
+
+  // NUE marker
+  var nueGlow = svgEl("circle", { cx: nue.x, cy: nue.y, r: "10", fill: "#3b82f6", opacity: "0.2" });
+  nueGlow.style.animation = "pulseO 2.2s ease-in-out infinite";
+  svg.appendChild(nueGlow);
+  svg.appendChild(svgEl("circle", { cx: nue.x, cy: nue.y, r: "6", fill: "#3b82f6" }));
+  svg.appendChild(svgEl("circle", { cx: nue.x, cy: nue.y, r: "6", fill: "none", stroke: "#93c5fd", "stroke-width": "2" }));
+  var nueLbl = svgEl("text", { x: nue.x, y: nue.y - 11, "text-anchor": "middle", fill: "#93c5fd", "font-size": "9", "font-weight": "700", "font-family": "DM Sans, sans-serif" });
+  nueLbl.textContent = "NUE";
+  svg.appendChild(nueLbl);
+
+  document.getElementById("tap-hint").style.display = selectedIata ? "none" : "block";
+}
+
+// BUILD LIST
+function buildList() {
+  var filtered = getFiltered();
+  var search = document.getElementById("search").value;
+  if (search) {
+    var q = search.toLowerCase();
+    filtered = filtered.filter(function(d) {
+      return d.city.toLowerCase().indexOf(q) >= 0 || d.country.toLowerCase().indexOf(q) >= 0 || d.iata.toLowerCase().indexOf(q) >= 0;
+    });
+  }
+  document.getElementById("list-count").textContent = filtered.length + " destinations";
+  var scroll = document.getElementById("list-scroll");
+  scroll.innerHTML = "";
+  filtered.forEach(function(d) {
+    var row = el("div", { class: "dest-row" + (selectedIata === d.iata ? " sel" : "") });
+    var color = REGION_COLORS[d.region] || "#94a3b8";
+    row.innerHTML =
+      '<span class="dest-flag">' + d.flag + '</span>' +
+      '<div style="flex:1;min-width:0"><div class="dest-name">' + d.city + '</div><div class="dest-sub">' + d.country + ' &middot; ' + d.airline.split("/")[0].trim() + '</div></div>' +
+      '<div class="dest-right"><div class="dest-iata">' + d.iata + '</div><div class="dest-dot" style="background:' + color + '"></div></div>';
+    (function(iata) {
+      row.addEventListener("click", function() { selectDest(iata); });
+    })(d.iata);
+    scroll.appendChild(row);
+  });
+}
+
+function getFiltered() {
+  return DESTINATIONS.filter(function(d) {
+    return activeRegion === "All" || d.region === activeRegion;
+  });
+}
+
+function selectDest(iata) {
+  selectedIata = selectedIata === iata ? null : iata;
+  buildMap();
+  buildList();
+  if (selectedIata) openSheet(selectedIata);
+  else closeSheet();
+}
+
+function openSheet(iata) {
+  var dest = DESTINATIONS.find(function(d) { return d.iata === iata; });
+  if (!dest) return;
+  var color = REGION_COLORS[dest.region] || "#94a3b8";
+
+  document.getElementById("sheet-info").innerHTML =
+    '<div style="display:flex;align-items:center;gap:10px">' +
+      '<span style="font-size:28px">' + dest.flag + '</span>' +
+      '<div>' +
+        '<div style="font-size:20px;font-weight:700">' + dest.city + '</div>' +
+        '<div style="font-size:13px;color:#64748b">' + dest.country + ' &middot; ' + dest.iata + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-top:8px"><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:' + color + '22;color:' + color + ';border:1px solid ' + color + '44">' + dest.region + '</span></div>';
+
+  var activeDays = getActiveDays(dest);
+  var dayPillsHTML = DAYS.map(function(day) {
+    var on = activeDays.indexOf(day) >= 0;
+    var bg = on ? color + "22" : "#1e293b";
+    var clr = on ? color : "#334155";
+    var bdr = on ? color + "55" : "transparent";
+    return '<div class="day-pill" style="background:' + bg + ';color:' + clr + ';border:1px solid ' + bdr + '">' + day.slice(0,2) + '</div>';
+  }).join("");
+
+  var timeCardsHTML = dest.times.map(function(t) {
+    return '<div class="time-card" style="background:' + color + '18;border:1px solid ' + color + '33"><div class="time-val" style="color:' + color + '">' + t + '</div><div class="time-sub">dep.</div></div>';
+  }).join("");
+
+  document.getElementById("sheet-body").innerHTML =
+    '<div class="s-grid">' +
+      '<div class="s-card"><div class="s-label">Airline(s)</div><div class="s-value">' + dest.airline + '</div></div>' +
+      '<div class="s-card"><div class="s-label">Frequency</div><div class="s-value">' + dest.freq + '</div></div>' +
+    '</div>' +
+    '<div class="s-card"><div class="s-label">Operating Days</div><div class="days-row">' + dayPillsHTML + '</div></div>' +
+    '<div class="s-card"><div class="s-label">Typical Departures from NUE</div><div class="times-row">' + timeCardsHTML + '</div><div class="s-note">&#9432; Indicative times &mdash; check airline websites for live schedules.</div></div>';
+
+  document.getElementById("backdrop").className = "open";
+  document.getElementById("sheet").className = "open";
+}
+
+function closeSheet() {
+  selectedIata = null;
+  document.getElementById("backdrop").className = "";
+  document.getElementById("sheet").className = "";
+  buildMap();
+  buildList();
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById("map-tab").style.display = tab === "map" ? "block" : "none";
+  document.getElementById("list-tab").className = tab === "list" ? "list-wrap" : "list-wrap hidden";
+  document.getElementById("btn-map").className = "tab-btn" + (tab === "map" ? " active" : "");
+  document.getElementById("btn-list").className = "tab-btn" + (tab === "list" ? " active" : "");
+}
+
+document.getElementById("search").addEventListener("input", function() { buildList(); });
+
+// Init
+buildChips();
+buildMap();
+buildList();
+</script>
+
 </body>
 </html>
